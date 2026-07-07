@@ -14,7 +14,7 @@ import seaborn as sns
 import joblib  # <-- Added this import
 
 # 1. Load cleaned data
-df = pd.read_csv('cleaned_tickets_balanced.csv')
+df = pd.read_csv('cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']

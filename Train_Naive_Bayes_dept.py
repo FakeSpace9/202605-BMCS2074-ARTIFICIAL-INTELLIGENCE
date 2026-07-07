@@ -1,6 +1,6 @@
 """
 Baseline classifier: Multinomial Naive Bayes for Department routing.
-Uses the cleaned_tickets.csv produced by preprocess.py.
+Uses the original cleaned_tickets.csv and algorithmic sample weights.
 """
 
 import pandas as pd
@@ -8,32 +8,34 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.utils.class_weight import compute_sample_weight  # <-- Added import
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib  # <-- Added this import
+import joblib
 
-# 1. Load cleaned data
-df = pd.read_csv('cleaned_tickets_balanced.csv')
-df = df.dropna(subset=['clean_text'])  # safety net in case any cleaned to empty string
+# 1. Load the ORIGINAL cleaned data
+df = pd.read_csv('cleaned_tickets.csv')
+df = df.dropna(subset=['clean_text']) 
 
 X = df['clean_text']
 y = df['Department']
 
-# 2. Train/test split (stratify so rare departments appear in both sets)
+# 2. Train/test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 # 3. TF-IDF vectorization
-#    max_features caps vocabulary size; ngram_range=(1,2) also captures
-#    two-word phrases like "account management" not just single words
 vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2))
 X_train_tfidf = vectorizer.fit_transform(X_train)
-X_test_tfidf = vectorizer.transform(X_test)  # transform only, never fit on test data
+X_test_tfidf = vectorizer.transform(X_test)
 
-# 4. Train Naive Bayes
+# 4. Train Naive Bayes with Sample Weights to fix imbalance internally
 nb_model = MultinomialNB()
-nb_model.fit(X_train_tfidf, y_train)
+# Calculate weights dynamically based on the training labels
+sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
+# Fit the model using these weights
+nb_model.fit(X_train_tfidf, y_train, sample_weight=sample_weights)
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
@@ -41,7 +43,7 @@ y_pred = nb_model.predict(X_test_tfidf)
 print("=== Classification Report (Department) ===")
 print(classification_report(y_test, y_pred))
 
-# 6. Confusion matrix (visual check of which departments get confused)
+# 6. Confusion matrix
 labels = sorted(y.unique())
 cm = confusion_matrix(y_test, y_pred, labels=labels)
 
@@ -56,9 +58,9 @@ plt.tight_layout()
 plt.savefig('confusion_matrix_department_nb.png', dpi=150)
 print("Saved confusion_matrix_department_nb.png")
 
-# 7. Quick manual test with a new made-up ticket
+# 7. Quick manual test
 def predict_department(text, vectorizer, model):
-    from preprocess import clean_text  # reuse your cleaning function
+    from preprocess import clean_text 
     cleaned = clean_text(text)
     vec = vectorizer.transform([cleaned])
     return model.predict(vec)[0]
@@ -66,7 +68,7 @@ def predict_department(text, vectorizer, model):
 sample_ticket = "My laptop screen is completely black and it won't turn on after the update."
 print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_model))
 
-# 8. Save the model and vectorizer to disk <-- Added saving logic
+# 8. Save models
 print("\nSaving models to disk...")
 joblib.dump(nb_model, 'nb_department_model.pkl')
 joblib.dump(vectorizer, 'tfidf_department_vectorizer.pkl')
