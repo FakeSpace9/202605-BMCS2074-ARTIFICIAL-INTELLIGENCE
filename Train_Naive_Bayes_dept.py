@@ -10,6 +10,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import joblib  # <-- Added this import
 
 # 1. Load cleaned data
 df = pd.read_csv('cleaned_tickets.csv')
@@ -64,3 +65,9 @@ def predict_department(text, vectorizer, model):
 
 sample_ticket = "My laptop screen is completely black and it won't turn on after the update."
 print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_model))
+
+# 8. Save the model and vectorizer to disk <-- Added saving logic
+print("\nSaving models to disk...")
+joblib.dump(nb_model, 'nb_department_model.pkl')
+joblib.dump(vectorizer, 'tfidf_department_vectorizer.pkl')
+print("Successfully saved nb_department_model.pkl and tfidf_department_vectorizer.pkl")

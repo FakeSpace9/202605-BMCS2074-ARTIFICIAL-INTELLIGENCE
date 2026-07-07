@@ -10,6 +10,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import joblib  # <-- Added this import to enable saving
 
 # 1. Load cleaned data
 df = pd.read_csv('cleaned_tickets.csv')
@@ -42,7 +43,6 @@ print("=== Classification Report (Priority) ===")
 print(classification_report(y_test, y_pred))
 
 # 6. Confusion matrix (visual check of how urgency levels get confused)
-# Sorting ensures a consistent order (e.g., High, Low, Medium depending on exact capitalization)
 labels = sorted(y.unique())
 cm = confusion_matrix(y_test, y_pred, labels=labels)
 
@@ -65,3 +65,9 @@ def predict_priority(text, vectorizer, model):
 
 sample_ticket = "URGENT: The main database server is down and no one can process payments! Please help immediately."
 print("\nSample prediction:", predict_priority(sample_ticket, vectorizer, nb_model))
+
+# 8. Save the model and vectorizer to disk <-- Added saving logic
+print("\nSaving models to disk...")
+joblib.dump(nb_model, 'nb_priority_model.pkl')
+joblib.dump(vectorizer, 'tfidf_priority_vectorizer.pkl')
+print("Successfully saved nb_priority_model.pkl and tfidf_priority_vectorizer.pkl")
