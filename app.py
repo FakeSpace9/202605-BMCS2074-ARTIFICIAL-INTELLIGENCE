@@ -5,43 +5,68 @@ from preprocess import clean_text  # Imports your team's custom text cleaner
 # 1. Set up the page design
 st.set_page_config(page_title="IT Ticket Triage AI", page_icon="🎫", layout="centered")
 
-st.title("🎫 Automated IT Ticket Triage")
-st.write("Enter a customer support ticket below, and our Naive Bayes AI will automatically route it to the correct department and assign a priority level.")
+# --- MODEL DICTIONARIES ---
+# Here we map the dropdown names to their exact saved file names. 
+# When your team finishes the Transformer model, you can just add it to these lists!
+DEPT_MODELS = {
+    "Naive Bayes": ("nb_department_model.pkl", "tfidf_department_vectorizer.pkl"),
+    "SVM": ("svm_department_model.pkl", "tfidf_svm_department_vectorizer.pkl")
+}
 
-# 2. Load the trained models and vectorizers
-# @st.cache_resource ensures the models only load once, making the app much faster
+PRIORITY_MODELS = {
+    "Naive Bayes": ("nb_priority_model.pkl", "tfidf_priority_vectorizer.pkl"),
+    "SVM": ("svm_priority_model.pkl", "tfidf_svm_priority_vectorizer.pkl")
+}
+
+# 2. Dynamic Model Loader
+# Passing the filenames as arguments allows Streamlit to cache each model efficiently
 @st.cache_resource
-def load_models():
-    # Load Department files
-    dept_model = joblib.load('nb_department_model.pkl')
-    dept_vec = joblib.load('tfidf_department_vectorizer.pkl')
-    
-    # Load Priority files
-    pri_model = joblib.load('nb_priority_model.pkl')
-    pri_vec = joblib.load('tfidf_priority_vectorizer.pkl')
-    
-    return dept_model, dept_vec, pri_model, pri_vec
+def load_selected_model(model_path, vec_path):
+    model = joblib.load(model_path)
+    vectorizer = joblib.load(vec_path)
+    return model, vectorizer
 
-dept_model, dept_vec, pri_model, pri_vec = load_models()
+# --- UI LAYOUT ---
+st.title("🎫 Automated IT Ticket Triage")
+st.write("Enter a customer support ticket below, and our AI will automatically route it to the correct department and assign a priority level.")
 
-# 3. Create the user input area
+# 3. Sidebar for Model Selection
+st.sidebar.header("⚙️ Settings")
+st.sidebar.write("Select the underlying AI models for the triage system:")
+
+selected_dept_model = st.sidebar.selectbox("Department Routing Model", list(DEPT_MODELS.keys()))
+selected_pri_model = st.sidebar.selectbox("Priority Prediction Model", list(PRIORITY_MODELS.keys()))
+
+# Retrieve the correct filenames based on what the user clicked in the sidebar
+dept_model_file, dept_vec_file = DEPT_MODELS[selected_dept_model]
+pri_model_file, pri_vec_file = PRIORITY_MODELS[selected_pri_model]
+
+# Load the models with a try-except block in case a teammate hasn't provided their .pkl file yet
+try:
+    dept_model, dept_vec = load_selected_model(dept_model_file, dept_vec_file)
+    pri_model, pri_vec = load_selected_model(pri_model_file, pri_vec_file)
+except FileNotFoundError as e:
+    st.error(f"⚠️ Missing file: {e}. Make sure you have trained and saved the {selected_dept_model} and {selected_pri_model} models to your folder.")
+    st.stop()  # Stops the app from crashing further down
+
+# 4. Create the user input area
 st.subheader("Submit a New Ticket")
 ticket_text = st.text_area("Ticket Body:", height=150, placeholder="e.g., URGENT: The main database server is down and no one can process payments!")
 
-# 4. Process the text and make predictions when the user clicks the button
+# 5. Process the text and make predictions
 if st.button("Predict Triage Routing"):
     if not ticket_text.strip():
         st.warning("Please enter some text before predicting.")
     else:
         with st.spinner("Analyzing text..."):
-            # Step A: Preprocess the raw text using your team's pipeline
+            # Step A: Preprocess the raw text
             cleaned_text = clean_text(ticket_text)
             
-            # Step B: Vectorize and predict Department
+            # Step B: Vectorize and predict Department using the SELECTED model
             dept_vectorized = dept_vec.transform([cleaned_text])
             predicted_dept = dept_model.predict(dept_vectorized)[0]
             
-            # Step C: Vectorize and predict Priority
+            # Step C: Vectorize and predict Priority using the SELECTED model
             pri_vectorized = pri_vec.transform([cleaned_text])
             predicted_priority = pri_model.predict(pri_vectorized)[0]
             
@@ -51,11 +76,11 @@ if st.button("Predict Triage Routing"):
             col1, col2 = st.columns(2)
             
             with col1:
-                st.metric(label="🏢 Routed Department", value=predicted_dept)
+                # Adding the model name in brackets so the user knows which one made the decision
+                st.metric(label=f"🏢 Routed Department ({selected_dept_model})", value=predicted_dept)
                 
             with col2:
-                # Add a little visual flair based on priority level
-                if predicted_priority == "High":
-                    st.metric(label="🚨 Urgency Priority", value=predicted_priority)
+                if predicted_priority.lower() == "high":
+                    st.metric(label=f"🚨 Urgency Priority ({selected_pri_model})", value=predicted_priority)
                 else:
-                    st.metric(label="📋 Urgency Priority", value=predicted_priority)
+                    st.metric(label=f"📋 Urgency Priority ({selected_pri_model})", value=predicted_priority)
