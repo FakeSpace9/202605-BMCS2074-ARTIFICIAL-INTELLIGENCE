@@ -13,7 +13,7 @@ import seaborn as sns
 import joblib  # <-- Added this import to enable saving
 
 # 1. Load cleaned data
-df = pd.read_csv('cleaned_tickets.csv')
+df = pd.read_csv('cleaned_tickets_balanced.csv')
 # Safety net in case any text cleaned to empty string or missing priority
 df = df.dropna(subset=['clean_text', 'Priority']) 
 
