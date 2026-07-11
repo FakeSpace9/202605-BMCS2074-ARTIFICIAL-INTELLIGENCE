@@ -10,12 +10,14 @@ st.set_page_config(page_title="IT Ticket Triage AI", page_icon="🎫", layout="c
 # When your team finishes the Transformer model, you can just add it to these lists!
 DEPT_MODELS = {
     "Naive Bayes": ("nb_department_model.pkl", "tfidf_department_vectorizer.pkl"),
-    "SVM": ("svm_department_model.pkl", "tfidf_svm_department_vectorizer.pkl")
+    "SVM": ("svm_department_model.pkl", "tfidf_svm_department_vectorizer.pkl"),
+    "Logistic Regression": ("logreg_department_model.pkl", "tfidf_logreg_department_vectorizer.pkl")
 }
 
 PRIORITY_MODELS = {
     "Naive Bayes": ("nb_priority_model.pkl", "tfidf_priority_vectorizer.pkl"),
-    "SVM": ("svm_priority_model.pkl", "tfidf_svm_priority_vectorizer.pkl")
+    "SVM": ("svm_priority_model.pkl", "tfidf_svm_priority_vectorizer.pkl"),
+    "Logistic Regression": ("logreg_priority_model.pkl", "tfidf_logreg_priority_vectorizer.pkl")
 }
 
 # 2. Dynamic Model Loader
