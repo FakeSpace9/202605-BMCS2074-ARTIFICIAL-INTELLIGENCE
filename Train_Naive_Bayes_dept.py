@@ -1,21 +1,20 @@
 """
 Baseline classifier: Naive Bayes for Department routing.
-Uses the original cleaned_tickets.csv.
-Switched from MultinomialNB + sample_weight='balanced' to ComplementNB
-(designed for imbalanced text classification) with tuned alpha and
-improved TF-IDF features.
+ComplementNB + tuned alpha/norm + word/char TF-IDF + chi2 feature selection.
 """
 
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.naive_bayes import ComplementNB
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# 1. Load the ORIGINAL cleaned data
+# 1. Load data
 df = pd.read_csv('cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text'])
 
@@ -27,43 +26,46 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# 3. TF-IDF vectorization
-# - stop_words='english' removes filler words that add noise
-# - sublinear_tf=True dampens the effect of very high-frequency terms
-# - min_df=2 drops ultra-rare terms/typos that just add sparsity
-vectorizer = TfidfVectorizer(
-    max_features=15000,
-    ngram_range=(1, 2),
-    stop_words='english',
-    sublinear_tf=True,
-    min_df=2
+# 3. Combined word + char TF-IDF
+word_vec = TfidfVectorizer(
+    max_features=15000, ngram_range=(1, 2),
+    stop_words='english', sublinear_tf=True, min_df=2
 )
+char_vec = TfidfVectorizer(
+    max_features=8000, ngram_range=(3, 5),
+    analyzer='char_wb', sublinear_tf=True, min_df=2
+)
+vectorizer = FeatureUnion([('word', word_vec), ('char', char_vec)])
+
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
-# 4. Train ComplementNB with alpha tuning via GridSearchCV
-# ComplementNB is specifically designed to correct the "severe assumptions"
-# MultinomialNB makes on imbalanced datasets — no manual sample_weight needed.
-param_grid = {'alpha': [0.05, 0.1, 0.3, 0.5, 1.0, 2.0]}
-grid = GridSearchCV(
-    ComplementNB(),
-    param_grid,
-    scoring='f1_macro',
-    cv=5,
-    n_jobs=-1
-)
+# 4. chi2 feature selection + ComplementNB, tuned together
+# chi2 ranks features by how strongly they associate with the class label,
+# so keeping only the top-K strips out noisy/uninformative n-grams that
+# otherwise dilute NB's (already weak) per-class probability estimates.
+pipe = Pipeline([
+    ('select', SelectKBest(chi2)),
+    ('nb', ComplementNB())
+])
+
+param_grid = {
+    'select__k': [8000, 12000, 16000, 'all'],
+    'nb__alpha': [0.01, 0.05, 0.1, 0.3],
+    'nb__norm': [True, False]
+}
+
+grid = GridSearchCV(pipe, param_grid, scoring='f1_macro', cv=3, n_jobs=-1, verbose=1)
 grid.fit(X_train_tfidf, y_train)
 
 nb_model = grid.best_estimator_
-print(f"Best alpha found: {grid.best_params_['alpha']}")
+print(f"Best params: {grid.best_params_}")
 print(f"Best CV f1_macro: {grid.best_score_:.4f}")
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
-
 accuracy = accuracy_score(y_test, y_pred)
 print(f"\nNaive Bayes (Complement) Overall Accuracy: {accuracy * 100:.2f}%")
-
 print("\n=== Classification Report (Department) ===")
 print(classification_report(y_test, y_pred))
 
