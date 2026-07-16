@@ -1,6 +1,6 @@
 """
-Baseline classifier: Naive Bayes for Department routing.
-Uses the original cleaned_tickets.csv.
+Naive Bayes classifier for three-class support-ticket routing.
+Uses the consolidated routing labels created by preprocess.py.
 Switched from MultinomialNB + sample_weight='balanced' to ComplementNB
 (designed for imbalanced text classification) with tuned alpha and
 improved TF-IDF features.
@@ -9,13 +9,14 @@ improved TF-IDF features.
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import ComplementNB
+from sklearn.naive_bayes import ComplementNB, MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# 1. Load the ORIGINAL cleaned data
+# 1. Load the cleaned data.  Department is intentionally a three-class
+# first-line-routing target; see preprocess.py for the mapping rationale.
 df = pd.read_csv('cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text'])
 
@@ -44,27 +45,56 @@ X_test_tfidf = vectorizer.transform(X_test)
 # 4. Train ComplementNB with alpha tuning via GridSearchCV
 # ComplementNB is specifically designed to correct the "severe assumptions"
 # MultinomialNB makes on imbalanced datasets — no manual sample_weight needed.
-param_grid = {'alpha': [0.05, 0.1, 0.3, 0.5, 1.0, 2.0]}
+param_grid = {
+    'alpha': [0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 2.0],
+    'norm': [False, True],
+}
 grid = GridSearchCV(
     ComplementNB(),
     param_grid,
-    scoring='f1_macro',
+    # Accuracy is the stated project target. Macro F1 is still reported below.
+    scoring='accuracy',
     cv=5,
     n_jobs=-1
 )
 grid.fit(X_train_tfidf, y_train)
 
-nb_model = grid.best_estimator_
-print(f"Best alpha found: {grid.best_params_['alpha']}")
-print(f"Best CV f1_macro: {grid.best_score_:.4f}")
+multinomial_grid = GridSearchCV(
+    MultinomialNB(),
+    {'alpha': [0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 2.0]},
+    scoring='accuracy',
+    cv=5,
+    n_jobs=-1,
+)
+multinomial_grid.fit(X_train_tfidf, y_train)
+
+# Select using only cross-validation on the training partition, then evaluate
+# the selected model once on the untouched test partition.
+if multinomial_grid.best_score_ > grid.best_score_:
+    nb_model = multinomial_grid.best_estimator_
+    selected_name = 'MultinomialNB'
+    selected_params = multinomial_grid.best_params_
+    selected_cv_score = multinomial_grid.best_score_
+else:
+    nb_model = grid.best_estimator_
+    selected_name = 'ComplementNB'
+    selected_params = grid.best_params_
+    selected_cv_score = grid.best_score_
+
+print(f"ComplementNB best CV accuracy: {grid.best_score_:.4f} ({grid.best_params_})")
+print(f"MultinomialNB best CV accuracy: {multinomial_grid.best_score_:.4f} ({multinomial_grid.best_params_})")
+print(f"Selected baseline: {selected_name} {selected_params}")
+print(f"Selected CV accuracy: {selected_cv_score:.4f}")
+print("\nClass distribution:")
+print(y.value_counts())
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
 
 accuracy = accuracy_score(y_test, y_pred)
-print(f"\nNaive Bayes (Complement) Overall Accuracy: {accuracy * 100:.2f}%")
+print(f"\nNaive Bayes ({selected_name}) Overall Accuracy: {accuracy * 100:.2f}%")
 
-print("\n=== Classification Report (Department) ===")
+print("\n=== Classification Report (Three-Class Routing) ===")
 print(classification_report(y_test, y_pred))
 
 # 6. Confusion matrix
@@ -73,9 +103,9 @@ cm = confusion_matrix(y_test, y_pred, labels=labels)
 
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Department')
-plt.ylabel('Actual Department')
-plt.title('Confusion Matrix - Naive Bayes (Department)')
+plt.xlabel('Predicted Routing Queue')
+plt.ylabel('Actual Routing Queue')
+plt.title('Confusion Matrix - Naive Bayes (Three-Class Routing)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()

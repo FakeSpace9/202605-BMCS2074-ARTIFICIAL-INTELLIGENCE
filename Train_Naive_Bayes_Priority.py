@@ -1,13 +1,15 @@
 """
-Upgraded classifier: Complement Naive Bayes for Priority prediction.
+Baseline classifier: Multinomial Naive Bayes for Priority prediction.
 Uses the original cleaned_tickets.csv.
-Switched from MultinomialNB to ComplementNB for better handling of imbalanced text data.
+MultinomialNB learns the observed priority frequencies and is evaluated using
+cross-validated accuracy because overall accuracy is the project target.
 """
 
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import ComplementNB
+from sklearn.pipeline import FeatureUnion
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -26,25 +28,39 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# 3. TF-IDF vectorization
-print("Vectorizing text using TF-IDF...")
-vectorizer = TfidfVectorizer(
-    max_features=15000, 
-    ngram_range=(1, 2),
-    stop_words='english',
-    sublinear_tf=True,
-    min_df=2
-)
+# 3. TF-IDF feature extraction
+# Word n-grams capture phrases such as "system down" and "please resolve".
+# Character n-grams capture variants such as urgent/urgently and technical
+# terms that may be split or misspelled.  Both produce non-negative features,
+# so they remain compatible with MultinomialNB.
+print("Vectorizing text using word and character TF-IDF features...")
+vectorizer = FeatureUnion([
+    ('word_tfidf', TfidfVectorizer(
+        max_features=25000,
+        ngram_range=(1, 3),
+        stop_words='english',
+        sublinear_tf=True,
+        min_df=2,
+    )),
+    ('char_tfidf', TfidfVectorizer(
+        analyzer='char_wb',
+        ngram_range=(3, 5),
+        max_features=30000,
+        sublinear_tf=True,
+        min_df=3,
+    )),
+])
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
-# 4. Train ComplementNB with alpha tuning via GridSearchCV
-print("Training Complement NB model with GridSearch...")
-param_grid = {'alpha': [0.05, 0.1, 0.3, 0.5, 1.0, 2.0]}
+# 4. Train MultinomialNB with alpha tuning via GridSearchCV.
+# The test set remains untouched until this selected model is evaluated once.
+print("Training Multinomial NB model with GridSearch...")
+param_grid = {'alpha': [0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 2.0]}
 grid = GridSearchCV(
-    ComplementNB(),
+    MultinomialNB(),
     param_grid,
-    scoring='f1_macro',
+    scoring='accuracy',
     cv=5,
     n_jobs=-1
 )
@@ -52,14 +68,14 @@ grid.fit(X_train_tfidf, y_train)
 
 nb_model = grid.best_estimator_
 print(f"Best alpha found: {grid.best_params_['alpha']}")
-print(f"Best CV f1_macro: {grid.best_score_:.4f}")
+print(f"Best CV accuracy: {grid.best_score_:.4f}")
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
 
 # Calculate and print the exact accuracy score
 accuracy = accuracy_score(y_test, y_pred)
-print(f"\nNaive Bayes (Complement) Overall Accuracy: {accuracy * 100:.2f}%")
+print(f"\nNaive Bayes (Multinomial) Overall Accuracy: {accuracy * 100:.2f}%")
 
 print("\n=== Classification Report (Priority) ===")
 print(classification_report(y_test, y_pred))
@@ -72,7 +88,7 @@ plt.figure(figsize=(8, 6))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Oranges', xticklabels=labels, yticklabels=labels)
 plt.xlabel('Predicted Priority')
 plt.ylabel('Actual Priority')
-plt.title('Confusion Matrix - Complement NB (Priority)')
+plt.title('Confusion Matrix - Multinomial NB (Priority)')
 plt.tight_layout()
 plt.savefig('confusion_matrix_priority_nb.png', dpi=150)
 print("Saved confusion_matrix_priority_nb.png")
