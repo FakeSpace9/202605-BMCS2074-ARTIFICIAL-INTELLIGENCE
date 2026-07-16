@@ -29,14 +29,14 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # 3. TF-IDF vectorization
 print("Vectorizing text using TF-IDF...")
-vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2))
+vectorizer = TfidfVectorizer(max_features=15000, ngram_range=(1, 2), sublinear_tf=True)
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
 # 4. Train the Logistic Regression model for Priority
 print("Training Logistic Regression model for Priority...")
 # class_weight='balanced' is especially important for Priority, as 'High' priority tickets are usually rarer than 'Low'
-log_reg_model = LogisticRegression(random_state=42, max_iter=1000, class_weight='balanced')
+log_reg_model = LogisticRegression(C=10,random_state=42, max_iter=1000, class_weight='balanced')
 log_reg_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
