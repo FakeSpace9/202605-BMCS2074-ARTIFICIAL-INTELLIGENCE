@@ -36,7 +36,7 @@ CUSTOM_STOPWORDS = {
     'appreciate', 'provide', 'assistance', 'guidance', 'information',
     'request', 'look', 'forward', 'greatly', 'might', 'may', 'due',
     'recent', 'still', 'soon', 'possible', 'need', 'help', 'also', 'able',
-    'like', 'want', 'br', 'u'
+    'like', 'want', 'br', 'u','must','reach','overall','seek','seeking','assistance','assisting','assisted','assists','assist','assists','assisted','assisting','requesting','requests','requested','requester','requesters','requesting','requestor','requestors'  
 }
 
 def clean_text(text, remove_custom_stopwords=False):
