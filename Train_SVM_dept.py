@@ -28,7 +28,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # 3. TF-IDF vectorization (identical settings to the Naive Bayes script
 #    so any difference in results comes from the model, not the features)
-vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2))
+vectorizer = TfidfVectorizer(max_features=250000, ngram_range=(1, 3))
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
@@ -36,7 +36,7 @@ X_test_tfidf = vectorizer.transform(X_test)
 #    class_weight='balanced' automatically up-weights minority departments
 #    (General Inquiry, Human Resources, Sales and Pre-Sales) so the model
 #    doesn't just default to predicting the biggest class every time.
-svm_model = LinearSVC(class_weight='balanced', max_iter=5000, random_state=42)
+svm_model = LinearSVC(C = 5,class_weight='balanced', max_iter=1000, random_state=42)
 svm_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
