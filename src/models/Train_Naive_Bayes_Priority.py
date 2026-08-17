@@ -14,10 +14,17 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+
+sys.path.append(src_dir)
 
 # 1. Load the ORIGINAL cleaned data
 print("Loading data...")
-df = pd.read_csv('cleaned_tickets.csv')
+df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text', 'Priority']) 
 
 X = df['clean_text']
@@ -78,7 +85,7 @@ plt.xlabel('Predicted Priority')
 plt.ylabel('Actual Priority')
 plt.title('Confusion Matrix - Multinomial NB (Priority)')
 plt.tight_layout()
-plt.savefig('confusion_matrix_priority_nb.png', dpi=150)
+plt.savefig('../../report_assets/plots/confusion_matrix_priority_nb.png', dpi=150)
 print("Saved confusion_matrix_priority_nb.png")
 
 # 7. Quick manual test
@@ -93,6 +100,6 @@ print("\nSample prediction:", predict_priority(sample_ticket, vectorizer, nb_mod
 
 # 8. Save models
 print("\nSaving models to disk...")
-joblib.dump(nb_model, 'nb_priority_model.pkl')
-joblib.dump(vectorizer, 'tfidf_priority_vectorizer.pkl')
+joblib.dump(nb_model, '../../prototype/nb_priority_model.pkl')
+joblib.dump(vectorizer, '../../prototype/tfidf_priority_vectorizer.pkl')
 print("Successfully saved nb_priority_model.pkl and tfidf_priority_vectorizer.pkl")

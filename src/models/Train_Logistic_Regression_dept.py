@@ -11,10 +11,17 @@ from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+
+sys.path.append(src_dir)
 
 # 1. Load cleaned data
 print("Loading data...")
-df = pd.read_csv('cleaned_tickets.csv')
+df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']
@@ -56,7 +63,7 @@ plt.title('Confusion Matrix - Logistic Regression (Department)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('confusion_matrix_department_logreg.png', dpi=150)
+plt.savefig('../../report_assets/plots/confusion_matrix_department_logreg.png', dpi=150)
 print("Saved confusion_matrix_department_logreg.png")
 
 
@@ -89,6 +96,6 @@ predict_department_with_prob(sample_ticket, vectorizer, log_reg_model)
 
 # 8. Save the model and vectorizer to disk
 print("\nSaving models to disk...")
-joblib.dump(log_reg_model, 'logreg_department_model.pkl')
-joblib.dump(vectorizer, 'tfidf_logreg_department_vectorizer.pkl')
+joblib.dump(log_reg_model, '../../prototype/logreg_department_model.pkl')
+joblib.dump(vectorizer, '../../prototype/tfidf_logreg_department_vectorizer.pkl')
 print("Successfully saved logreg_department_model.pkl and tfidf_logreg_department_vectorizer.pkl")

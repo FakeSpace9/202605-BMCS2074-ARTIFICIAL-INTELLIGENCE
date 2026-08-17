@@ -17,7 +17,7 @@ import joblib
 
 # 1. Load and prepare data
 print("Loading cleaned dataset...")
-df = pd.read_csv('cleaned_tickets.csv').dropna(subset=['clean_text', 'Department'])
+df = pd.read_csv('../../data/processed/cleaned_tickets.csv').dropna(subset=['clean_text', 'Department'])
 X = df['clean_text']
 y = df['Department']
 
@@ -104,11 +104,11 @@ plt.yticks(rotation=0)
 plt.tight_layout()
 
 # Save image with the rushB suffix
-plt.savefig('confusion_matrix_department_svm_rushB.png', dpi=150)
+plt.savefig('../../report_assets/plots/confusion_matrix_department_svm_rushB.png', dpi=150)
 print("Saved confusion_matrix_department_svm_rushB.png")
 
 # 8. Save the final pipeline
 print("\nSaving pipeline to disk...")
 # Save model with the rushB suffix
-joblib.dump(best_pipeline, 'svm_department_pipeline_rushB.pkl')
+joblib.dump(best_pipeline, '../../prototype/svm_department_pipeline_rushB.pkl')
 print("Successfully saved svm_department_pipeline_rushB.pkl")

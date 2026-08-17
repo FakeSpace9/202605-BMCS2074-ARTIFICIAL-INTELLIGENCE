@@ -2,7 +2,7 @@ import pandas as pd
 
 # 1. Load the cleaned dataset
 # Change this filename if your data is saved under a different name
-input_file = 'cleaned_tickets.csv' 
+input_file = '../data/processed/cleaned_tickets.csv'
 df = pd.read_csv(input_file)
 
 # 2. Filter for 'Low' priority
@@ -19,7 +19,7 @@ columns_to_keep = [col for col in desired_columns if col in low_priority_df.colu
 final_df = low_priority_df[columns_to_keep]
 
 # 4. Save to a new CSV file
-output_file = 'low_priority_extracted.csv'
+output_file = '../data/processed/low_priority_extracted.csv'
 final_df.to_csv(output_file, index=False)
 
 # Print a success message with the count

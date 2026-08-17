@@ -14,10 +14,18 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+
+sys.path.append(src_dir)
 
 # 1. Load the cleaned data.  Department is intentionally a three-class
 # first-line-routing target; see preprocess.py for the mapping rationale.
-df = pd.read_csv('cleaned_tickets.csv')
+print("loading data...")
+df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']
@@ -109,7 +117,7 @@ plt.title('Confusion Matrix - Naive Bayes (Three-Class Routing)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('confusion_matrix_department_nb.png', dpi=150)
+plt.savefig('../../report_assets/plots/confusion_matrix_department_nb.png', dpi=150)
 print("\nSaved confusion_matrix_department_nb.png")
 
 # 7. Quick manual test
@@ -124,6 +132,6 @@ print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_m
 
 # 8. Save models
 print("\nSaving models to disk...")
-joblib.dump(nb_model, 'nb_department_model.pkl')
-joblib.dump(vectorizer, 'tfidf_department_vectorizer.pkl')
+joblib.dump(nb_model, '../../prototype/nb_department_model.pkl')
+joblib.dump(vectorizer, '../../prototype/tfidf_department_vectorizer.pkl')
 print("Successfully saved nb_department_model.pkl and tfidf_department_vectorizer.pkl")

@@ -13,10 +13,17 @@ from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+
+sys.path.append(src_dir)
 
 # 1. Load cleaned data
 print("Loading cleaned dataset...")
-df = pd.read_csv('cleaned_tickets.csv')
+df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
 # Drop any rows where the text or priority might be missing
 df = df.dropna(subset=['clean_text', 'Priority'])
 
@@ -62,7 +69,7 @@ plt.title('Confusion Matrix - SVM (Priority)')
 plt.xticks(rotation=45)
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('confusion_matrix_priority_svm.png', dpi=150)
+plt.savefig('../../report_assets/plots/confusion_matrix_priority_svm.png', dpi=150)
 print("Confusion matrix saved as 'confusion_matrix_priority_svm.png'!")
 
 # 7. Quick Manual Test
@@ -79,6 +86,6 @@ print("\nSample prediction:", predict_priority(sample_ticket, vectorizer, svm_mo
 
 # 8. Save the model and vectorizer to disk
 print("\nSaving models to disk...")
-joblib.dump(svm_model, 'svm_priority_model.pkl')
-joblib.dump(vectorizer, 'tfidf_svm_priority_vectorizer.pkl')
+joblib.dump(svm_model, '../../prototype/svm_priority_model.pkl')
+joblib.dump(vectorizer, '../../prototype/tfidf_svm_priority_vectorizer.pkl')
 print("Successfully saved svm_priority_model.pkl and tfidf_svm_priority_vectorizer.pkl")

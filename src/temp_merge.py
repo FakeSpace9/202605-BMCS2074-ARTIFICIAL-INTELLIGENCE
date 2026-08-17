@@ -1,7 +1,7 @@
 import pandas as pd
 
 # 1. Load your main cleaned dataset
-input_file = 'cleaned_tickets.csv'
+input_file = '../data/processed/cleaned_tickets.csv'
 df = pd.read_csv(input_file)
 
 # Ensure consistent capitalization just in case
@@ -32,7 +32,7 @@ df_balanced = pd.concat([df, df_low_extra])
 df_balanced = df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # 7. Save to a new CSV file
-output_file = 'cleaned_tickets_balanced.csv'
+output_file = '../data/processed/cleaned_tickets_balanced.csv'
 df_balanced.to_csv(output_file, index=False)
 
 print(f"\n✅ Success! Saved to {output_file}")
