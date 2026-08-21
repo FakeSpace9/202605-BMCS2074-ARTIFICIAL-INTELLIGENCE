@@ -22,6 +22,7 @@ model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
 sys.path.append(src_dir)
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
 
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     """
@@ -101,27 +102,13 @@ print(y.value_counts())
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
-
-accuracy = accuracy_score(y_test, y_pred)
-print(f"\nNaive Bayes ({'ComplementNB'}) Overall Accuracy: {accuracy * 100:.2f}%")
-
-print("\n=== Classification Report (Three-Class Routing) ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "Naive Bayes", "Department")
 save_report_metrics(y_test, y_pred, "Naive Bayes", "Department", project_root)
+
 # 6. Confusion matrix
 labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
+plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Department", project_root, cmap='Blue', figsize=(8, 6), xtick_rotation=0)
 
-plt.figure(figsize=(10, 8))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Routing Queue')
-plt.ylabel('Actual Routing Queue')
-plt.title('Confusion Matrix - Naive Bayes (Three-Class Routing)')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_department_nb.png", dpi=150)
-print("\nSaved confusion_matrix_department_nb.png")
 
 # 7. Quick manual test
 def predict_department(text, vectorizer, model):
@@ -135,7 +122,4 @@ sample_ticket = "My laptop screen is completely black and it won't turn on after
 print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_model))
 
 # 8. Save models
-print("\nSaving models to disk...")
-joblib.dump(nb_model, project_root/"prototype"/"model"/"nb_department_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_nb_department_vectorizer.pkl")
-print("Successfully saved nb_department_model.pkl and tfidf_nb_department_vectorizer.pkl")
+save_model_and_vectorizer(nb_model, vectorizer, "nb", "Department", project_root)

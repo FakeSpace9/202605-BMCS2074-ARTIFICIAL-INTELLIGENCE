@@ -15,11 +15,15 @@ import sys
 import os
 from pathlib import Path
 
-model_dir = Path(__file__).resolve().parent    # .../src/models
-src_dir = model_dir.parent                     # .../src
-project_root = src_dir.parent
+# Get the directory of the current script, then go up one level to 'src'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 
-sys.path.append(src_dir)
+# Add the parent directory to Python's path
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
+
 
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     """
@@ -70,25 +74,11 @@ log_reg_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
 y_pred = log_reg_model.predict(X_test_tfidf)
-
-print("\n=== Classification Report (Logistic Regression - Department) ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "Logistic Regression", "Department")
 save_report_metrics(y_test, y_pred, "Logistic Regression", "Department", project_root)
 # 6. Confusion matrix (visual check)
 labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
-
-plt.figure(figsize=(10, 8))
-# Using Greens for the heatmap so it looks distinct from the Naive Bayes (Blues) and SVM
-sns.heatmap(cm, annot=True, fmt='d', cmap='Greens', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Department')
-plt.ylabel('Actual Department')
-plt.title('Confusion Matrix - Logistic Regression (Department)')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_department_logreg.png", dpi=150)
-print("Saved confusion_matrix_department_logreg.png")
+plot_confusion_matrix(y_test, y_pred, labels, "Logistic Regression", "logreg", "Department", project_root, cmap='Greens', figsize=(10, 8))
 
 
 # 7. Quick manual test demonstrating probabilities
@@ -120,7 +110,4 @@ sample_ticket = "My laptop screen is completely black and it won't turn on after
 predict_department_with_prob(sample_ticket, vectorizer, log_reg_model)
 
 # 8. Save the model and vectorizer to disk
-print("\nSaving models to disk...")
-joblib.dump(log_reg_model, project_root/"prototype"/"model"/"logreg_department_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_logreg_department_vectorizer.pkl")
-print("Successfully saved logreg_department_model.pkl and tfidf_logreg_department_vectorizer.pkl")
+save_model_and_vectorizer(log_reg_model, vectorizer, "logreg", "Department", project_root)

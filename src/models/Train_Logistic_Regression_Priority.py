@@ -19,6 +19,8 @@ from pathlib import Path
 model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
+
 
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     """
@@ -73,25 +75,12 @@ log_reg_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
 y_pred = log_reg_model.predict(X_test_tfidf)
-
-print("\n=== Classification Report (Logistic Regression - Priority) ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "Logistic Regression", "Priority")
 save_report_metrics(y_test, y_pred, "Logistic Regression", "Priority", project_root)
 # 6. Confusion matrix (visual check)
 labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
+plot_confusion_matrix(y_test, y_pred, labels, "Logistic Regression", "logreg", "Priority", project_root, cmap='Reds', figsize=(10, 8))
 
-plt.figure(figsize=(10, 8))
-# Using Reds for Priority to distinguish it from the Department heatmaps
-sns.heatmap(cm, annot=True, fmt='d', cmap='Reds', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Priority')
-plt.ylabel('Actual Priority')
-plt.title('Confusion Matrix - Logistic Regression (Priority)')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_priority_logreg.png", dpi=150)
-print("Saved confusion_matrix_priority_logreg.png")
 
 
 # 7. Quick manual test demonstrating probabilities
@@ -118,7 +107,4 @@ sample_ticket = "The main database server just crashed and the entire company ca
 predict_priority_with_prob(sample_ticket, vectorizer, log_reg_model)
 
 # 8. Save the model and vectorizer to disk (Updated filenames for Priority)
-print("\nSaving Priority models to disk...")
-joblib.dump(log_reg_model, project_root/"prototype"/"model"/"logreg_priority_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_logreg_priority_vectorizer.pkl")
-print("Successfully saved logreg_priority_model.pkl and tfidf_logreg_priority_vectorizer.pkl")
+save_model_and_vectorizer(log_reg_model, vectorizer, "logreg", "Priority", project_root)

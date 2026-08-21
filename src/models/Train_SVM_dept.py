@@ -21,6 +21,8 @@ src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
 
 sys.path.append(src_dir)
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
+
 
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     """
@@ -73,23 +75,13 @@ svm_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
 y_pred = svm_model.predict(X_test_tfidf)
-
-print("=== Classification Report (Department) - SVM ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "SVM", "Department")
 save_report_metrics(y_test, y_pred, "SVM", "Department", project_root)
+
 # 6. Confusion matrix
 labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
-
-plt.figure(figsize=(10, 8))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Greens', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Department')
-plt.ylabel('Actual Department')
-plt.title('Confusion Matrix - SVM (Department)')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_department_svm.png", dpi=150)
+plot_confusion_matrix(y_test, y_pred, labels, "SVM", "svm", "Department", project_root,
+                       cmap='Green', figsize=(8, 6), xtick_ha='center')
 print("Saved confusion_matrix_department_svm.png")
 
 # 7. Quick manual test with a new made-up ticket
@@ -105,6 +97,4 @@ print("\nSample prediction:", predict_department(sample_ticket, vectorizer, svm_
 
 # 8. Save the model and vectorizer to disk <-- Added saving logic
 print("\nSaving models to disk...")
-joblib.dump(svm_model, project_root/"prototype"/"model"/"svm_department_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_svm_department_vectorizer.pkl")
-print("Successfully saved svm_department_model.pkl and tfidf_svm_department_vectorizer.pkl")
+save_model_and_vectorizer(svm_model, vectorizer, "svm", "Department", project_root)
