@@ -20,6 +20,7 @@ from pathlib import Path
 model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
 
 sys.path.append(src_dir)
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
@@ -89,26 +90,12 @@ print(f"Best CV accuracy: {grid.best_score_:.4f}")
 
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
-
-# Calculate and print the exact accuracy score
-accuracy = accuracy_score(y_test, y_pred)
-print(f"\nNaive Bayes (Multinomial) Overall Accuracy: {accuracy * 100:.2f}%")
-
-print("\n=== Classification Report (Priority) ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "Naive Bayes", "Priority")
 save_report_metrics(y_test, y_pred, "Naive Bayes", "Priority", project_root)
+
 # 6. Confusion matrix
 labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
-
-plt.figure(figsize=(8, 6))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Oranges', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Priority')
-plt.ylabel('Actual Priority')
-plt.title('Confusion Matrix - Multinomial NB (Priority)')
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_priority_nb.png", dpi=150)
-print("Saved confusion_matrix_priority_nb.png")
+plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Priority", project_root, cmap='Oranges', figsize=(8, 6), xtick_rotation=0)
 
 # 7. Quick manual test
 def predict_priority(text, vectorizer, model):
@@ -122,7 +109,4 @@ sample_ticket = "URGENT: The main database server is down and no one can process
 print("\nSample prediction:", predict_priority(sample_ticket, vectorizer, nb_model))
 
 # 8. Save models
-print("\nSaving models to disk...")
-joblib.dump(nb_model, project_root/"prototype"/"model"/"nb_priority_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_nb_priority_vectorizer.pkl")
-print("Successfully saved nb_priority_model.pkl and tfidf_nb_priority_vectorizer.pkl")
+save_model_and_vectorizer(nb_model, vectorizer, "nb", "Priority", project_root)

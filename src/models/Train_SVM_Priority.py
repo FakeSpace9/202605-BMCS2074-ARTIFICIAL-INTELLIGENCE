@@ -22,6 +22,8 @@ src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
 
 sys.path.append(src_dir)
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
+
 
 def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     """
@@ -73,28 +75,14 @@ svm_model = LinearSVC(C = 4.4, class_weight='balanced', max_iter=450, random_sta
 svm_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
-print("Predicting & Evaluating the model...")
 y_pred = svm_model.predict(X_test_tfidf)
-
-print("=== Classification Report (Priority) - SVM ===")
-print(classification_report(y_test, y_pred))
+print_classification_report(y_test, y_pred, "SVM", "Priority")
 save_report_metrics(y_test, y_pred, "SVM", "Priority", project_root)
-# 6. Confusion matrix
-print("Generating Confusion Matrix visualization...")
-labels = sorted(y.unique())
-cm = confusion_matrix(y_test, y_pred, labels=labels)
 
-plt.figure(figsize=(8, 6))
-# Using 'Blues' instead of 'Greens' so you can tell the priority and dept charts apart
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted Priority')
-plt.ylabel('Actual Priority')
-plt.title('Confusion Matrix - SVM (Priority)')
-plt.xticks(rotation=45)
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_priority_svm.png", dpi=150)
-print("Confusion matrix saved as 'confusion_matrix_priority_svm.png'!")
+# 6. Confusion matrix
+labels = sorted(y.unique())
+plot_confusion_matrix(y_test, y_pred, labels, "SVM", "svm", "Priority", project_root,
+                       cmap='Blues', figsize=(8, 6), xtick_ha='center')
 
 # 7. Quick Manual Test
 def predict_priority(text, vectorizer, model):
@@ -110,7 +98,4 @@ sample_ticket = "Can someone help me configure the SAML integration settings for
 print("\nSample prediction:", predict_priority(sample_ticket, vectorizer, svm_model))
 
 # 8. Save the model and vectorizer to disk
-print("\nSaving models to disk...")
-joblib.dump(svm_model, project_root/"prototype"/"model"/"svm_priority_model.pkl")
-joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_svm_priority_vectorizer.pkl")
-print("Successfully saved svm_priority_model.pkl and tfidf_svm_priority_vectorizer.pkl")
+save_model_and_vectorizer(svm_model, vectorizer, "svm", "Priority", project_root)
