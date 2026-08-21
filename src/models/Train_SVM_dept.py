@@ -14,15 +14,17 @@ import seaborn as sns
 import joblib
 import sys
 import os
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.dirname(current_dir)
+model_dir = Path(__file__).resolve().parent    # .../src/models
+src_dir = model_dir.parent                     # .../src
+project_root = src_dir.parent
 
 sys.path.append(src_dir)
 
 # 1. Load cleaned data
 print("Loading cleaned dataset...")
-df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
+df = pd.read_csv(project_root / "data"/"processed"/"cleaned_tickets.csv")
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']
@@ -65,11 +67,12 @@ plt.title('Confusion Matrix - SVM (Department)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('../../report_assets/plots/confusion_matrix_department_svm.png', dpi=150)
+plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_department_svm.png", dpi=150)
 print("Saved confusion_matrix_department_svm.png")
 
 # 7. Quick manual test with a new made-up ticket
 def predict_department(text, vectorizer, model):
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
     from preprocess import clean_text
     cleaned = clean_text(text)
     vec = vectorizer.transform([cleaned])
@@ -80,6 +83,6 @@ print("\nSample prediction:", predict_department(sample_ticket, vectorizer, svm_
 
 # 8. Save the model and vectorizer to disk <-- Added saving logic
 print("\nSaving models to disk...")
-joblib.dump(svm_model, '../../prototype/svm_department_model.pkl')
-joblib.dump(vectorizer, '../../prototype/tfidf_svm_department_vectorizer.pkl')
+joblib.dump(svm_model, project_root/"prototype"/"model"/"svm_department_model.pkl")
+joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_svm_department_vectorizer.pkl")
 print("Successfully saved svm_department_model.pkl and tfidf_svm_department_vectorizer.pkl")

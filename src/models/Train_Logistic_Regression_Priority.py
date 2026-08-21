@@ -14,15 +14,18 @@ import joblib
 import sys
 import os
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.dirname(current_dir)
+from pathlib import Path
+
+model_dir = Path(__file__).resolve().parent    # .../src/models
+src_dir = model_dir.parent                     # .../src
+project_root = src_dir.parent
 
 sys.path.append(src_dir)
 
 # 1. Load cleaned data
 print("Loading data...")
 # Assuming you use the same balanced dataset. If you have a specific priority dataset, change the name here.
-df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
+df = pd.read_csv(project_root / "data"/"processed"/"cleaned_tickets.csv")
 df = df.dropna(subset=['clean_text', 'Priority'])
 
 X = df['clean_text']
@@ -65,12 +68,13 @@ plt.title('Confusion Matrix - Logistic Regression (Priority)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('../../report_assets/plots/confusion_matrix_priority_logreg.png', dpi=150)
+plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_priority_logreg.png", dpi=150)
 print("Saved confusion_matrix_priority_logreg.png")
 
 
 # 7. Quick manual test demonstrating probabilities
 def predict_priority_with_prob(text, vectorizer, model):
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
     from preprocess import clean_text
     cleaned = clean_text(text)
     vec = vectorizer.transform([cleaned])
@@ -93,6 +97,6 @@ predict_priority_with_prob(sample_ticket, vectorizer, log_reg_model)
 
 # 8. Save the model and vectorizer to disk (Updated filenames for Priority)
 print("\nSaving Priority models to disk...")
-joblib.dump(log_reg_model, '../../prototype/logreg_priority_model.pkl')
-joblib.dump(vectorizer, '../../prototype/tfidf_logreg_priority_vectorizer.pkl')
+joblib.dump(log_reg_model, project_root/"prototype"/"model"/"logreg_priority_model.pkl")
+joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_logreg_priority_vectorizer.pkl")
 print("Successfully saved logreg_priority_model.pkl and tfidf_logreg_priority_vectorizer.pkl")

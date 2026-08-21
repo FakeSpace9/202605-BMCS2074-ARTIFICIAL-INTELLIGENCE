@@ -13,7 +13,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-
+from pathlib import Path
+current_dir = Path(__file__).resolve().parent
+project_root = current_dir.parent
 nltk.download('punkt')
 nltk.download('punkt_tab')
 nltk.download('stopwords')
@@ -89,7 +91,7 @@ def parse_tags(tags_str):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('../data/raw/IT_Support_Ticket_Data.csv')
+    df = pd.read_csv(project_root / "data" / "raw" / "IT_Support_Ticket_Data.csv")
     df = df.dropna(subset=['Body']).reset_index(drop=True)
 
     # ---------------------------------------------------------
@@ -144,5 +146,5 @@ if __name__ == "__main__":
     print("\nRows after cleaning:", len(df))
     print("\nFinal routing-class distribution:\n", df['Department'].value_counts())
 
-    df.to_csv('../data/processed/cleaned_tickets.csv', index=False)
+    df.to_csv(project_root/"data"/"processed"/"cleaned_tickets.csv", index=False)
     print("Saved cleaned_tickets.csv")

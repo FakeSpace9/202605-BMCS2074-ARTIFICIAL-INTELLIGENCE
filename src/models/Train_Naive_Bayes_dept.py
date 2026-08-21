@@ -16,16 +16,17 @@ import seaborn as sns
 import joblib
 import sys
 import os
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.dirname(current_dir)
-
+model_dir = Path(__file__).resolve().parent    # .../src/models
+src_dir = model_dir.parent                     # .../src
+project_root = src_dir.parent
 sys.path.append(src_dir)
 
 # 1. Load the cleaned data.  Department is intentionally a three-class
 # first-line-routing target; see preprocess.py for the mapping rationale.
 print("loading data...")
-df = pd.read_csv('../../data/processed/cleaned_tickets.csv')
+df = pd.read_csv(project_root / "data"/"processed"/"cleaned_tickets.csv")
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']
@@ -67,30 +68,15 @@ grid = GridSearchCV(
 )
 grid.fit(X_train_tfidf, y_train)
 
-multinomial_grid = GridSearchCV(
-    MultinomialNB(),
-    {'alpha': [0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 2.0]},
-    scoring='accuracy',
-    cv=5,
-    n_jobs=-1,
-)
-multinomial_grid.fit(X_train_tfidf, y_train)
 
-# Select using only cross-validation on the training partition, then evaluate
-# the selected model once on the untouched test partition.
-if multinomial_grid.best_score_ > grid.best_score_:
-    nb_model = multinomial_grid.best_estimator_
-    selected_name = 'MultinomialNB'
-    selected_params = multinomial_grid.best_params_
-    selected_cv_score = multinomial_grid.best_score_
-else:
-    nb_model = grid.best_estimator_
-    selected_name = 'ComplementNB'
-    selected_params = grid.best_params_
-    selected_cv_score = grid.best_score_
+
+
+nb_model = grid.best_estimator_
+selected_name = 'ComplementNB'
+selected_params = grid.best_params_
+selected_cv_score = grid.best_score_
 
 print(f"ComplementNB best CV accuracy: {grid.best_score_:.4f} ({grid.best_params_})")
-print(f"MultinomialNB best CV accuracy: {multinomial_grid.best_score_:.4f} ({multinomial_grid.best_params_})")
 print(f"Selected baseline: {selected_name} {selected_params}")
 print(f"Selected CV accuracy: {selected_cv_score:.4f}")
 print("\nClass distribution:")
@@ -117,11 +103,12 @@ plt.title('Confusion Matrix - Naive Bayes (Three-Class Routing)')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
-plt.savefig('../../report_assets/plots/confusion_matrix_department_nb.png', dpi=150)
+plt.savefig(project_root/"report_assets"/"plots"/"confusion_matrix_department_nb.png", dpi=150)
 print("\nSaved confusion_matrix_department_nb.png")
 
 # 7. Quick manual test
 def predict_department(text, vectorizer, model):
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
     from preprocess import clean_text
     cleaned = clean_text(text)
     vec = vectorizer.transform([cleaned])
@@ -132,6 +119,6 @@ print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_m
 
 # 8. Save models
 print("\nSaving models to disk...")
-joblib.dump(nb_model, '../../prototype/nb_department_model.pkl')
-joblib.dump(vectorizer, '../../prototype/tfidf_department_vectorizer.pkl')
-print("Successfully saved nb_department_model.pkl and tfidf_department_vectorizer.pkl")
+joblib.dump(nb_model, project_root/"prototype"/"model"/"nb_department_model.pkl")
+joblib.dump(vectorizer, project_root/"prototype"/"vectorizer"/"tfidf_nb_department_vectorizer.pkl")
+print("Successfully saved nb_department_model.pkl and tfidf_nb_department_vectorizer.pkl")
