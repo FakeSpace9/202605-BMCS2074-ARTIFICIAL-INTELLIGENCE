@@ -22,34 +22,14 @@ model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
 sys.path.append(src_dir)
-from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
-    """
-    Extracts the classification report and saves it as a CSV 
-    for easy copy-pasting into the assignment report tables.
-    """
-    # Generate the report as a dictionary
-    report_dict = classification_report(y_true, y_pred, output_dict=True)
-    
-    # Convert to a Pandas DataFrame and round to 4 decimal places
-    df_metrics = pd.DataFrame(report_dict).transpose().round(4)
-    
-    # Ensure the output directory exists
-    output_dir = root_path / "report_assets" / "metrics"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Save to CSV
-    filename = f"{model_name.replace(' ', '_')}_{task_name}_metrics.csv"
-    file_path = output_dir / filename
-    df_metrics.to_csv(file_path)
-    
-    print(f"✅ Saved {model_name} metrics for your report to: {file_path}")
+from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer, load_processed_dataset
 
 # 1. Load the cleaned data.  Department is intentionally a three-class
 # first-line-routing target; see preprocess.py for the mapping rationale.
 print("loading data...")
-df = pd.read_csv(project_root / "data"/"processed"/"cleaned_tickets.csv")
+df = load_processed_dataset()
 df = df.dropna(subset=['clean_text'])
 
 X = df['clean_text']
@@ -103,11 +83,11 @@ print(y.value_counts())
 # 5. Predict and evaluate
 y_pred = nb_model.predict(X_test_tfidf)
 print_classification_report(y_test, y_pred, "Naive Bayes", "Department")
-save_report_metrics(y_test, y_pred, "Naive Bayes", "Department", project_root)
+save_report_metrics(y_test, y_pred, "Naive Bayes", "Department")
 
 # 6. Confusion matrix
 labels = sorted(y.unique())
-plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Department", project_root, cmap='Blue', figsize=(8, 6), xtick_rotation=0)
+plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Department", cmap='Blues', figsize=(8, 6), xtick_rotation=0)
 
 
 # 7. Quick manual test
@@ -122,4 +102,4 @@ sample_ticket = "My laptop screen is completely black and it won't turn on after
 print("\nSample prediction:", predict_department(sample_ticket, vectorizer, nb_model))
 
 # 8. Save models
-save_model_and_vectorizer(nb_model, vectorizer, "nb", "Department", project_root)
+save_model_and_vectorizer(nb_model, vectorizer, "nb", "Department")

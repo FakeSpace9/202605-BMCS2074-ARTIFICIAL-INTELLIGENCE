@@ -3,7 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from pathlib import Path
 
+model_dir = Path(__file__).resolve().parent    # .../src/models
+src_dir = model_dir.parent                     # .../src
+project_root = src_dir.parent
 
 def print_classification_report(y_true, y_pred, model_name, task_name):
     """Prints overall accuracy + full classification report to console."""
@@ -14,7 +18,7 @@ def print_classification_report(y_true, y_pred, model_name, task_name):
     return accuracy
 
 
-def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
+def save_report_metrics(y_true, y_pred, model_name, task_name):
     """
     Extracts the classification report and saves it as a CSV
     for easy copy-pasting into the assignment report tables.
@@ -22,19 +26,24 @@ def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
     report_dict = classification_report(y_true, y_pred, output_dict=True)
     df_metrics = pd.DataFrame(report_dict).transpose().round(4)
 
-    output_dir = root_path / "report_assets" / "metrics"
+    # 1. Define the directory and create it if it doesn't exist
+    output_dir = project_root / "report_assets" / "metrics"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # 2. Define the filename
     filename = f"{model_name.replace(' ', '_')}_{task_name}_metrics.csv"
+    
+    # 3. Combine the directory and filename safely!
     file_path = output_dir / filename
+    
+    # 4. Save the file
     df_metrics.to_csv(file_path)
 
     print(f"✅ Saved {model_name} metrics for your report to: {file_path}")
     return file_path
 
-
 def plot_confusion_matrix(y_true, y_pred, labels, model_name, model_key, task_name,
-                           root_path, cmap='Blues', figsize=(10, 8),
+                        cmap='Blues', figsize=(10, 8),
                            xtick_rotation=45, xtick_ha='right'):
     """
     Builds a confusion-matrix heatmap and saves it to report_assets/plots.
@@ -52,7 +61,7 @@ def plot_confusion_matrix(y_true, y_pred, labels, model_name, model_key, task_na
     plt.yticks(rotation=0)
     plt.tight_layout()
 
-    output_dir = root_path / "report_assets" / "plots"
+    output_dir = project_root / "report_assets" / "plots"
     output_dir.mkdir(parents=True, exist_ok=True)
     filename = f"confusion_matrix_{task_name.lower()}_{model_key}.png"
     file_path = output_dir / filename
@@ -63,14 +72,14 @@ def plot_confusion_matrix(y_true, y_pred, labels, model_name, model_key, task_na
     return file_path
 
 
-def save_model_and_vectorizer(model, vectorizer, model_key, task_name, root_path):
+def save_model_and_vectorizer(model, vectorizer, model_key, task_name):
     """
     Saves model + vectorizer to prototype/model and prototype/vectorizer,
     using the SAME filenames your app.py already expects
     (e.g. nb_priority_model.pkl, tfidf_nb_priority_vectorizer.pkl).
     """
-    model_dir = root_path / "prototype" / "model"
-    vec_dir = root_path / "prototype" / "vectorizer"
+    model_dir = project_root / "prototype" / "model"
+    vec_dir = project_root / "prototype" / "vectorizer"
     model_dir.mkdir(parents=True, exist_ok=True)
     vec_dir.mkdir(parents=True, exist_ok=True)
 
@@ -85,10 +94,10 @@ def save_model_and_vectorizer(model, vectorizer, model_key, task_name, root_path
     return model_path, vec_path
 
 
-def load_model_and_vectorizer(model_key, task_name, root_path):
+def load_model_and_vectorizer(model_key, task_name):
     """Loads a previously saved model + vectorizer pair (mirrors save_model_and_vectorizer)."""
-    model_dir = root_path / "prototype" / "model"
-    vec_dir = root_path / "prototype" / "vectorizer"
+    model_dir = project_root / "prototype" / "model"
+    vec_dir = project_root / "prototype" / "vectorizer"
 
     task_short = task_name.lower()
     model_path = model_dir / f"{model_key}_{task_short}_model.pkl"
@@ -97,3 +106,14 @@ def load_model_and_vectorizer(model_key, task_name, root_path):
     model = joblib.load(model_path)
     vectorizer = joblib.load(vec_path)
     return model, vectorizer
+
+def load_processed_dataset():
+    # Get the directory of utils.py (which is 'src'), then go up one level to the project root
+    project_root = Path(__file__).resolve().parent.parent
+    
+    # Construct the full path to the CSV
+    file_path = project_root / "data" / "processed" / "cleaned_tickets.csv"
+    
+    # Load and return the dataframe
+    df = pd.read_csv(file_path)
+    return df
