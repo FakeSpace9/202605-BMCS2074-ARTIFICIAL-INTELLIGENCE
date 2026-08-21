@@ -9,7 +9,7 @@ improved TF-IDF features.
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import ComplementNB, MultinomialNB
+from sklearn.naive_bayes import ComplementNB
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -22,6 +22,28 @@ model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
 sys.path.append(src_dir)
+
+def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
+    """
+    Extracts the classification report and saves it as a CSV 
+    for easy copy-pasting into the assignment report tables.
+    """
+    # Generate the report as a dictionary
+    report_dict = classification_report(y_true, y_pred, output_dict=True)
+    
+    # Convert to a Pandas DataFrame and round to 4 decimal places
+    df_metrics = pd.DataFrame(report_dict).transpose().round(4)
+    
+    # Ensure the output directory exists
+    output_dir = root_path / "report_assets" / "metrics"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save to CSV
+    filename = f"{model_name.replace(' ', '_')}_{task_name}_metrics.csv"
+    file_path = output_dir / filename
+    df_metrics.to_csv(file_path)
+    
+    print(f"✅ Saved {model_name} metrics for your report to: {file_path}")
 
 # 1. Load the cleaned data.  Department is intentionally a three-class
 # first-line-routing target; see preprocess.py for the mapping rationale.
@@ -68,17 +90,12 @@ grid = GridSearchCV(
 )
 grid.fit(X_train_tfidf, y_train)
 
-
-
-
 nb_model = grid.best_estimator_
-selected_name = 'ComplementNB'
-selected_params = grid.best_params_
-selected_cv_score = grid.best_score_
+
 
 print(f"ComplementNB best CV accuracy: {grid.best_score_:.4f} ({grid.best_params_})")
-print(f"Selected baseline: {selected_name} {selected_params}")
-print(f"Selected CV accuracy: {selected_cv_score:.4f}")
+
+print(f"CV accuracy: {grid.best_score_:.4f}")
 print("\nClass distribution:")
 print(y.value_counts())
 
@@ -86,11 +103,11 @@ print(y.value_counts())
 y_pred = nb_model.predict(X_test_tfidf)
 
 accuracy = accuracy_score(y_test, y_pred)
-print(f"\nNaive Bayes ({selected_name}) Overall Accuracy: {accuracy * 100:.2f}%")
+print(f"\nNaive Bayes ({'ComplementNB'}) Overall Accuracy: {accuracy * 100:.2f}%")
 
 print("\n=== Classification Report (Three-Class Routing) ===")
 print(classification_report(y_test, y_pred))
-
+save_report_metrics(y_test, y_pred, "Naive Bayes", "Department", project_root)
 # 6. Confusion matrix
 labels = sorted(y.unique())
 cm = confusion_matrix(y_test, y_pred, labels=labels)

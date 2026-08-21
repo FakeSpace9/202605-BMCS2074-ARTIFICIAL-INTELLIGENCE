@@ -22,6 +22,28 @@ project_root = src_dir.parent
 
 sys.path.append(src_dir)
 
+def save_report_metrics(y_true, y_pred, model_name, task_name, root_path):
+    """
+    Extracts the classification report and saves it as a CSV 
+    for easy copy-pasting into the assignment report tables.
+    """
+    # Generate the report as a dictionary
+    report_dict = classification_report(y_true, y_pred, output_dict=True)
+    
+    # Convert to a Pandas DataFrame and round to 4 decimal places
+    df_metrics = pd.DataFrame(report_dict).transpose().round(4)
+    
+    # Ensure the output directory exists
+    output_dir = root_path / "report_assets" / "metrics"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save to CSV
+    filename = f"{model_name.replace(' ', '_')}_{task_name}_metrics.csv"
+    file_path = output_dir / filename
+    df_metrics.to_csv(file_path)
+    
+    print(f"✅ Saved {model_name} metrics for your report to: {file_path}")
+
 # 1. Load cleaned data
 print("Loading cleaned dataset...")
 df = pd.read_csv(project_root / "data"/"processed"/"cleaned_tickets.csv")
@@ -54,7 +76,7 @@ y_pred = svm_model.predict(X_test_tfidf)
 
 print("=== Classification Report (Department) - SVM ===")
 print(classification_report(y_test, y_pred))
-
+save_report_metrics(y_test, y_pred, "SVM", "Department", project_root)
 # 6. Confusion matrix
 labels = sorted(y.unique())
 cm = confusion_matrix(y_test, y_pred, labels=labels)
