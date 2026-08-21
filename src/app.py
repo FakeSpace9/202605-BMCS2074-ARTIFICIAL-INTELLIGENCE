@@ -7,22 +7,22 @@ from preprocess import clean_text  # Imports your team's custom text cleaner
 st.set_page_config(page_title="IT Ticket Triage AI", page_icon="🎫", layout="centered")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-PROTO_DIR = BASE_DIR / 'prototype'
-
+MODEL_DIR = BASE_DIR / 'prototype' /'model'
+VEC_DIR = BASE_DIR / 'prototype' /'vectorizer'
 # --- MODEL DICTIONARIES ---
 # Here we map the dropdown names to their exact saved file names. 
 # When your team finishes the Transformer model, you can just add it to these lists!
 DEPT_MODELS = {
-    "Naive Bayes": (PROTO_DIR / "nb_department_model.pkl", PROTO_DIR / "tfidf_department_vectorizer.pkl"),
-    "SVM": (PROTO_DIR / "svm_department_model.pkl", PROTO_DIR / "tfidf_svm_department_vectorizer.pkl"),
-    "Logistic Regression": (PROTO_DIR / "logreg_department_model.pkl",
-                            PROTO_DIR / "tfidf_logreg_department_vectorizer.pkl")
+    "Naive Bayes": (MODEL_DIR / "nb_department_model.pkl", VEC_DIR / "tfidf_nb_department_vectorizer.pkl"),
+    "SVM": (MODEL_DIR / "svm_department_model.pkl", VEC_DIR / "tfidf_svm_department_vectorizer.pkl"),
+    "Logistic Regression": (MODEL_DIR / "logreg_department_model.pkl",
+                            VEC_DIR / "tfidf_logreg_department_vectorizer.pkl")
 }
 
 PRIORITY_MODELS = {
-    "Naive Bayes": (PROTO_DIR / "nb_priority_model.pkl", PROTO_DIR / "tfidf_priority_vectorizer.pkl"),
-    "SVM": (PROTO_DIR / "svm_priority_model.pkl", PROTO_DIR / "tfidf_svm_priority_vectorizer.pkl"),
-    "Logistic Regression": (PROTO_DIR / "logreg_priority_model.pkl", PROTO_DIR / "tfidf_logreg_priority_vectorizer.pkl")
+    "Naive Bayes": (MODEL_DIR / "nb_priority_model.pkl", VEC_DIR / "tfidf_nb_priority_vectorizer.pkl"),
+    "SVM": (MODEL_DIR / "svm_priority_model.pkl", VEC_DIR / "tfidf_svm_priority_vectorizer.pkl"),
+    "Logistic Regression": (MODEL_DIR / "logreg_priority_model.pkl", VEC_DIR / "tfidf_logreg_priority_vectorizer.pkl")
 }
 
 # 2. Dynamic Model Loader
