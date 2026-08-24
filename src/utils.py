@@ -71,7 +71,100 @@ def plot_confusion_matrix(y_true, y_pred, labels, model_name, model_key, task_na
     print(f"Saved {filename}")
     return file_path
 
+def get_prediction_confidence(model, vectorized_text):
+    """
+    Predict a class and return a confidence/score.
 
+    For models with predict_proba():
+        Uses the probability of the predicted class.
+
+    For models without predict_proba():
+        Uses decision_function() and converts the scores into
+        a relative confidence using softmax.
+
+    Returns:
+        predicted_class
+        confidence
+        probabilities
+    """
+
+    predicted_class = model.predict(vectorized_text)[0]
+
+    # ---------------------------------------------------------
+    # 1. Models with predict_proba()
+    #    Examples:
+    #    - MultinomialNB
+    #    - LogisticRegression
+    #    - SVC(probability=True)
+    # ---------------------------------------------------------
+    if hasattr(model, "predict_proba"):
+        probabilities = model.predict_proba(vectorized_text)[0]
+        class_labels = model.classes_
+
+        predicted_index = list(class_labels).index(predicted_class)
+        confidence = probabilities[predicted_index]
+
+        probabilities_dict = {
+            label: float(probability)
+            for label, probability in zip(class_labels, probabilities)
+        }
+
+        return predicted_class, confidence, probabilities_dict
+
+    # ---------------------------------------------------------
+    # 2. Models without predict_proba()
+    #    Example:
+    #    - LinearSVC
+    # ---------------------------------------------------------
+    if hasattr(model, "decision_function"):
+        scores = model.decision_function(vectorized_text)
+        class_labels = model.classes_
+
+        # Binary classification
+        if scores.ndim == 1:
+            score = float(scores[0])
+
+            # Convert binary decision score to a probability-like value
+            import math
+
+            confidence = 1 / (1 + math.exp(-abs(score)))
+
+            # Assign scores to the two classes
+            if score >= 0:
+                probabilities_dict = {
+                    class_labels[0]: 1 - confidence,
+                    class_labels[1]: confidence
+                }
+            else:
+                probabilities_dict = {
+                    class_labels[0]: confidence,
+                    class_labels[1]: 1 - confidence
+                }
+
+        # Multiclass classification
+        else:
+            import numpy as np
+
+            scores = scores[0]
+
+            # Softmax
+            exp_scores = np.exp(scores - np.max(scores))
+            probabilities = exp_scores / exp_scores.sum()
+
+            predicted_index = int(np.argmax(probabilities))
+            confidence = float(probabilities[predicted_index])
+
+            probabilities_dict = {
+                label: float(probability)
+                for label, probability in zip(class_labels, probabilities)
+            }
+
+        return predicted_class, confidence, probabilities_dict
+
+    # ---------------------------------------------------------
+    # 3. Model has neither predict_proba nor decision_function
+    # ---------------------------------------------------------
+    return predicted_class, None, None
 def save_model_and_vectorizer(model, vectorizer, model_key, task_name):
     """
     Saves model + vectorizer to prototype/model and prototype/vectorizer,

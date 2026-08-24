@@ -44,7 +44,7 @@ CUSTOM_STOPWORDS = {
     'like', 'want', 'br', 'u','must','reach','overall','seek','seeking',
     'assistance','assisting','assisted','assists','assist','assists',
     'assisted','assisting','requesting','requests','requested','requester',
-    'requesters','requesting','requestor','requestors'  
+    'requesters','requesting','requestor','requestors','report','significant','problem'
 }
 
 def clean_text(text, remove_custom_stopwords=False):
