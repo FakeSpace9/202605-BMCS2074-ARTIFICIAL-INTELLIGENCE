@@ -1,10 +1,3 @@
-"""
-SVM Model to Classify Ticket Priority
-Reads from 'cleaned_tickets.csv', extracts TF-IDF features,
-trains a Support Vector Machine, and evaluates the results.
-"""
-
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -49,7 +42,7 @@ X_test_tfidf = vectorizer.transform(X_test)
 
 # 4. Initialize and Train the SVM
 print("Training the SVM model for Priority (this might take a moment)...")
-svm_model = LinearSVC(C = 4.4, class_weight='balanced', max_iter=450, random_state=42)
+svm_model = LinearSVC(C = 5, class_weight='balanced', max_iter=5000, random_state=42)
 svm_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate

@@ -1,11 +1,5 @@
-"""
-SVM classifier for Department routing.
-Same pipeline as train_naive_bayes.py, swapping MultinomialNB for LinearSVC.
-Uses the cleaned_tickets.csv produced by preprocess.py.
-"""
-
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.metrics import classification_report, confusion_matrix
@@ -19,7 +13,6 @@ from pathlib import Path
 model_dir = Path(__file__).resolve().parent    # .../src/models
 src_dir = model_dir.parent                     # .../src
 project_root = src_dir.parent
-
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from utils import print_classification_report, save_report_metrics, plot_confusion_matrix, save_model_and_vectorizer, load_processed_dataset
@@ -35,23 +28,18 @@ df = df.dropna(subset=['clean_text'])
 X = df['clean_text']
 y = df['Department']
 
-# 2. Train/test split (same split logic as the Naive Bayes script,
-#    same random_state, so results are directly comparable)
+# 2. Train/test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 # 3. TF-IDF vectorization (identical settings to the Naive Bayes script
-#    so any difference in results comes from the model, not the features)
-vectorizer = TfidfVectorizer(max_features=250000, ngram_range=(1, 3))
+vectorizer = TfidfVectorizer(max_features=200000, ngram_range=(1, 3))
 X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 
 # 4. Train SVM
-#    class_weight='balanced' automatically up-weights minority departments
-#    (General Inquiry, Human Resources, Sales and Pre-Sales) so the model
-#    doesn't just default to predicting the biggest class every time.
-svm_model = LinearSVC(C = 5,class_weight='balanced', max_iter=1000, random_state=42)
+svm_model = LinearSVC(C = 5,class_weight='balanced', max_iter=5000, random_state=42)
 svm_model.fit(X_train_tfidf, y_train)
 
 # 5. Predict and evaluate
@@ -76,6 +64,6 @@ def predict_department(text, vectorizer, model):
 sample_ticket = "My laptop screen is completely black and it won't turn on after the update."
 print("\nSample prediction:", predict_department(sample_ticket, vectorizer, svm_model))
 
-# 8. Save the model and vectorizer to disk <-- Added saving logic
+# 8. Save the model and vectorizer to disk
 print("\nSaving models to disk...")
 save_model_and_vectorizer(svm_model, vectorizer, "svm", "Department")
