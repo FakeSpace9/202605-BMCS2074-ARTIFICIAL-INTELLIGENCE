@@ -218,37 +218,6 @@ if st.button("Predict Triage Routing"):
                 remove_custom_stopwords=True
             )
 
-
-            # =================================================
-            # TERMINAL DISPLAY
-            # =================================================
-            #
-            # THIS IS WHERE THE ORIGINAL AND CLEANED TEXT
-            # ARE DISPLAYED IN YOUR TERMINAL.
-            #
-            # It happens immediately after clean_text().
-            # =================================================
-
-            print("\n")
-            print("=" * 80)
-            print("🎫 NEW IT TICKET PREDICTION")
-            print("=" * 80)
-
-            print("\n👤 Original User Text:")
-            print(ticket_text)
-
-            print("\n🧹 Cleaned Text:")
-            print(cleaned_text)
-
-            print("\n🤖 Department Model:")
-            print(selected_dept_model)
-
-            print("\n🚨 Priority Model:")
-            print(selected_pri_model)
-
-            print("=" * 80)
-
-
             # =================================================
             # STEP B: DEPARTMENT PREDICTION
             # =================================================
@@ -265,7 +234,6 @@ if st.button("Predict Triage Routing"):
                 dept_model,
                 dept_vectorized
             )
-
 
             # =================================================
             # STEP C: PRIORITY PREDICTION
@@ -284,84 +252,13 @@ if st.button("Predict Triage Routing"):
                 pri_vectorized
             )
 
-
-            # =================================================
-            # TERMINAL: DISPLAY PREDICTION RESULTS
-            # =================================================
-
-            print("\n📊 PREDICTION RESULTS")
-            print("-" * 80)
-
-            print(
-                f"🏢 Department: {predicted_dept}"
-            )
-
-            if dept_confidence is not None:
-                print(
-                    f"   Confidence: {dept_confidence:.2%}"
-                )
-
-            print(
-                f"🚨 Priority: {predicted_priority}"
-            )
-
-            if pri_confidence is not None:
-                print(
-                    f"   Confidence: {pri_confidence:.2%}"
-                )
-
-            print("-" * 80)
-
-
-            # =================================================
-            # TERMINAL: DISPLAY ALL PROBABILITIES
-            # =================================================
-
-            if dept_probabilities:
-
-                print("\n📈 Department Probabilities:")
-
-                for label, probability in sorted(
-                    dept_probabilities.items(),
-                    key=lambda x: x[1],
-                    reverse=True
-                ):
-
-                    print(
-                        f"   {label}: {probability:.2%}"
-                    )
-
-
-            if pri_probabilities:
-
-                print("\n📈 Priority Probabilities:")
-
-                for label, probability in sorted(
-                    pri_probabilities.items(),
-                    key=lambda x: x[1],
-                    reverse=True
-                ):
-
-                    print(
-                        f"   {label}: {probability:.2%}"
-                    )
-
-
-            print("=" * 80)
-            print("✅ Prediction completed")
-            print("=" * 80)
-            print("\n")
-
-
             # =================================================
             # STEP D: STREAMLIT RESULT DISPLAY
             # =================================================
 
             st.success("Analysis Complete!")
 
-
             col1, col2 = st.columns(2)
-
 
             # =================================================
             # DEPARTMENT RESULT
@@ -388,7 +285,6 @@ if st.button("Predict Triage Routing"):
                     st.progress(
                         float(dept_confidence)
                     )
-
 
             # =================================================
             # PRIORITY RESULT
@@ -428,7 +324,6 @@ if st.button("Predict Triage Routing"):
                         float(pri_confidence)
                     )
 
-
             # =================================================
             # OPTIONAL: SHOW ALL PROBABILITIES
             # =================================================
@@ -437,9 +332,7 @@ if st.button("Predict Triage Routing"):
 
             st.subheader("📊 Prediction Details")
 
-
             detail_col1, detail_col2 = st.columns(2)
-
 
             # -------------------------------------------------
             # Department probabilities
@@ -474,7 +367,6 @@ if st.button("Predict Triage Routing"):
                         "This model does not provide "
                         "probability scores."
                     )
-
 
             # -------------------------------------------------
             # Priority probabilities

@@ -1,11 +1,3 @@
-"""
-Text preprocessing pipeline for IT_Support_Ticket_Data.csv
-Cleans 'Body' + folds in 'Tags' (topic keywords) so downstream
-models get much stronger topical signal.
-Steps: lowercase -> remove PII placeholders -> remove punctuation
--> tokenize -> remove stopwords -> lemmatize
-"""
-
 import re
 import ast
 import pandas as pd
@@ -32,10 +24,7 @@ CUSTOM_STOPWORDS = {
     'dear', 'customer', 'support', 'team', 'regards', 'sincerely',
     'thank', 'thanks', 'please', 'hi', 'hello',
 
-    # High-frequency wording that describes the act of writing an email, not
-    # the ticket's issue, routing queue, or urgency.  Keep words such as
-    # urgent, critical, outage, error, unable, and down because they carry
-    # useful priority or routing information.
+    # High-frequency wording that describes the act of writing an email
     'hope', 'message', 'find', 'well', 'reaching', 'regarding', 'facing',
     'earliest', 'could', 'would', 'ensure', 'writing', 'kindly',
     'appreciate', 'provide', 'assistance', 'guidance', 'information',
@@ -53,7 +42,6 @@ def clean_text(text, remove_custom_stopwords=False):
 
     text = text.lower()
 
-    # FIX 1: Removed \b so it catches squashed placeholders (e.g. nameacc_numtel_num)
     text = re.sub(r'\[your name\]', ' ', text)
     text = re.sub(r'acc_num', ' ', text)
     text = re.sub(r'tel_num', ' ', text)
@@ -97,17 +85,11 @@ if __name__ == "__main__":
     df = pd.read_csv(project_root / "data" / "raw" / "IT_Support_Ticket_Data.csv")
     df = df.dropna(subset=['Body']).reset_index(drop=True)
 
-    # ---------------------------------------------------------
-    # Department consolidation for the routing task
-    # ---------------------------------------------------------
     # The original data has several overlapping support departments.  For a
     # first-line routing model, use three operationally meaningful queues:
     # Technical Operations, Customer and Product Services, and Billing and
     # Returns.  Human Resources is removed because it is an internal service
     # rather than a customer-support routing destination.
-    #
-    # Important: report this as a *three-class routing task*.  Do not describe
-    # the resulting accuracy as performance on the original ten departments.
     df = df[df['Department'] != 'Human Resources'].reset_index(drop=True)
 
     department_mapping = {
@@ -135,16 +117,13 @@ if __name__ == "__main__":
     
     # ---------------------------------------------------------
 
-    # FIX 2: Added lambda to actually trigger remove_custom_stopwords=True
     df['clean_text'] = df['Body'].apply(lambda x: clean_text(x, remove_custom_stopwords=True))
 
-    # Fold in Tags as extra signal, if the column exists
     if 'Tags' in df.columns:
         df['clean_tags'] = df['Tags'].apply(parse_tags)
         df['clean_text'] = (df['clean_text'] + ' ' + df['clean_tags']).str.strip()
         df = df.drop(columns=['clean_tags'])
 
-    # Print a sample and the final class distribution for the report.
     print(df[['Department', 'Body', 'clean_text']].head(3).to_string())
     print("\nRows after cleaning:", len(df))
     print("\nFinal routing-class distribution:\n", df['Department'].value_counts())

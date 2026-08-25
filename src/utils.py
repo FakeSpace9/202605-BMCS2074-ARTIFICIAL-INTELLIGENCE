@@ -19,24 +19,19 @@ def print_classification_report(y_true, y_pred, model_name, task_name):
 
 
 def save_report_metrics(y_true, y_pred, model_name, task_name):
-    """
-    Extracts the classification report and saves it as a CSV
-    for easy copy-pasting into the assignment report tables.
-    """
     report_dict = classification_report(y_true, y_pred, output_dict=True)
     df_metrics = pd.DataFrame(report_dict).transpose().round(4)
 
-    # 1. Define the directory and create it if it doesn't exist
+
     output_dir = project_root / "report_assets" / "metrics"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Define the filename
+
     filename = f"{model_name.replace(' ', '_')}_{task_name}_metrics.csv"
     
-    # 3. Combine the directory and filename safely!
+
     file_path = output_dir / filename
-    
-    # 4. Save the file
+
     df_metrics.to_csv(file_path)
 
     print(f"✅ Saved {model_name} metrics for your report to: {file_path}")
@@ -74,14 +69,11 @@ def plot_confusion_matrix(y_true, y_pred, labels, model_name, model_key, task_na
 def get_prediction_confidence(model, vectorized_text):
     """
     Predict a class and return a confidence/score.
-
     For models with predict_proba():
         Uses the probability of the predicted class.
-
     For models without predict_proba():
         Uses decision_function() and converts the scores into
         a relative confidence using softmax.
-
     Returns:
         predicted_class
         confidence
@@ -90,13 +82,10 @@ def get_prediction_confidence(model, vectorized_text):
 
     predicted_class = model.predict(vectorized_text)[0]
 
-    # ---------------------------------------------------------
     # 1. Models with predict_proba()
-    #    Examples:
     #    - MultinomialNB
     #    - LogisticRegression
     #    - SVC(probability=True)
-    # ---------------------------------------------------------
     if hasattr(model, "predict_proba"):
         probabilities = model.predict_proba(vectorized_text)[0]
         class_labels = model.classes_
@@ -111,11 +100,10 @@ def get_prediction_confidence(model, vectorized_text):
 
         return predicted_class, confidence, probabilities_dict
 
-    # ---------------------------------------------------------
+
     # 2. Models without predict_proba()
     #    Example:
     #    - LinearSVC
-    # ---------------------------------------------------------
     if hasattr(model, "decision_function"):
         scores = model.decision_function(vectorized_text)
         class_labels = model.classes_
@@ -160,17 +148,8 @@ def get_prediction_confidence(model, vectorized_text):
             }
 
         return predicted_class, confidence, probabilities_dict
-
-    # ---------------------------------------------------------
-    # 3. Model has neither predict_proba nor decision_function
-    # ---------------------------------------------------------
     return predicted_class, None, None
 def save_model_and_vectorizer(model, vectorizer, model_key, task_name):
-    """
-    Saves model + vectorizer to prototype/model and prototype/vectorizer,
-    using the SAME filenames your app.py already expects
-    (e.g. nb_priority_model.pkl, tfidf_nb_priority_vectorizer.pkl).
-    """
     model_dir = project_root / "prototype" / "model"
     vec_dir = project_root / "prototype" / "vectorizer"
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -201,12 +180,9 @@ def load_model_and_vectorizer(model_key, task_name):
     return model, vectorizer
 
 def load_processed_dataset():
-    # Get the directory of utils.py (which is 'src'), then go up one level to the project root
     project_root = Path(__file__).resolve().parent.parent
-    
-    # Construct the full path to the CSV
+
     file_path = project_root / "data" / "processed" / "cleaned_tickets.csv"
     
-    # Load and return the dataframe
     df = pd.read_csv(file_path)
     return df
