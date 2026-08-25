@@ -24,13 +24,13 @@ y = df['Department']
 
 # 2. Train/test split
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+    X, y, test_size=0.2, random_state=42, stratify=y #stratify is to balance the splitting
 )
 
 # 3. TF-IDF vectorization
 # - stop_words='english' removes filler words that add noise
-# - sublinear_tf=True dampens the effect of very high-frequency terms
-# - min_df=2 drops ultra-rare terms/typos that just add sparsity
+# - sublinear_tf=True soften the effect of very high-frequency terms
+# - min_df=2 drops typo that only appear once
 vectorizer = TfidfVectorizer(
     max_features=48000,
     ngram_range=(1, 2),
