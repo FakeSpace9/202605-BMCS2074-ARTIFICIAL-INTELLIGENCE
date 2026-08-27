@@ -5,9 +5,10 @@ import seaborn as sns
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from pathlib import Path
 
-model_dir = Path(__file__).resolve().parent    # .../src/models
-src_dir = model_dir.parent                     # .../src
-project_root = src_dir.parent
+from pathlib import Path
+
+# Since utils.py is in 'src', going up one parent gets to 'src', and the second parent gets to the project root.
+project_root = Path(__file__).resolve().parent.parent
 
 def print_classification_report(y_true, y_pred, model_name, task_name):
     """Prints overall accuracy + full classification report to console."""

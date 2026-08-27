@@ -1,7 +1,7 @@
 ,precision,recall,f1-score,support
-Billing and Returns,0.8208,0.8016,0.8111,897.0
-Customer and Product Services,0.7581,0.7528,0.7554,2265.0
-Technical Operations,0.7998,0.8109,0.8053,2655.0
-accuracy,0.7868,0.7868,0.7868,0.7868
-macro avg,0.7929,0.7884,0.7906,5817.0
-weighted avg,0.7868,0.7868,0.7868,5817.0
+Billing and Returns,0.8304,0.7971,0.8134,897.0
+Customer and Product Services,0.7585,0.7598,0.7592,2265.0
+Technical Operations,0.8035,0.8132,0.8083,2655.0
+accuracy,0.7899,0.7899,0.7899,0.7899
+macro avg,0.7975,0.79,0.7936,5817.0
+weighted avg,0.7901,0.7899,0.79,5817.0
