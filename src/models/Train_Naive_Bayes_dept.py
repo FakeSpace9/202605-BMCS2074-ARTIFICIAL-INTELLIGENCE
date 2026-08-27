@@ -72,7 +72,7 @@ save_report_metrics(y_test, y_pred, "Naive Bayes", "Department")
 
 #Confusion matrix
 labels = sorted(y.unique())
-plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Department", cmap='Blues', figsize=(8, 6), xtick_rotation=0)
+plot_confusion_matrix(y_test, y_pred, labels, "Naive Bayes", "nb", "Department", cmap='Blues', figsize=(8, 6))
 
 
 #Quick manual test
