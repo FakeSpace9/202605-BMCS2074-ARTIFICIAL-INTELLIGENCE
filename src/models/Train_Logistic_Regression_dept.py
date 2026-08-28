@@ -1,8 +1,3 @@
-"""
-Upgraded Classifier: Logistic Regression for Department routing.
-Uses the cleaned_tickets_balanced.csv produced by preprocess.py.
-"""
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -29,7 +24,7 @@ df = df.dropna(subset=['clean_text'])
 X = df['clean_text']
 y = df['Department']
 
-# 2. Train/test split (Exact same random_state to ensure fair comparison with baseline and SVM)
+# 2. Train/test split 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )

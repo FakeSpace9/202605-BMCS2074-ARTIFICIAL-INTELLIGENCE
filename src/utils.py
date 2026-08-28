@@ -7,7 +7,6 @@ from pathlib import Path
 
 from pathlib import Path
 
-# Since utils.py is in 'src', going up one parent gets to 'src', and the second parent gets to the project root.
 project_root = Path(__file__).resolve().parent.parent
 
 def print_classification_report(y_true, y_pred, model_name, task_name):
@@ -103,8 +102,6 @@ def get_prediction_confidence(model, vectorized_text):
 
 
     # 2. Models without predict_proba()
-    #    Example:
-    #    - LinearSVC
     if hasattr(model, "decision_function"):
         scores = model.decision_function(vectorized_text)
         class_labels = model.classes_

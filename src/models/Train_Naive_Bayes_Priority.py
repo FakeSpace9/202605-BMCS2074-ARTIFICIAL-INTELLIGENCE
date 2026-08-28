@@ -26,8 +26,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # 3. TF-IDF feature extraction
-# Relying purely on the pre-cleaned data from cleaned_tickets.csv
-# Word n-grams capture phrases such as "system down" and "please resolve".
 print("Vectorizing text using word TF-IDF features...")
 vectorizer = TfidfVectorizer(
     max_features=20000,      

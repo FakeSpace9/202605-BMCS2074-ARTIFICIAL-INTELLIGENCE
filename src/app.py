@@ -19,9 +19,7 @@ def validate_ticket_input(text):
     return True, "Valid"
 
 
-# ============================================================
 # 1. PAGE CONFIGURATION
-# ============================================================
 
 st.set_page_config(
     page_title="IT Ticket Triage AI",
@@ -30,9 +28,8 @@ st.set_page_config(
 )
 
 
-# ============================================================
 # 2. PATH CONFIGURATION
-# ============================================================
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,9 +37,7 @@ MODEL_DIR = BASE_DIR / "prototype" / "model"
 VEC_DIR = BASE_DIR / "prototype" / "vectorizer"
 
 
-# ============================================================
 # 3. MODEL DICTIONARIES
-# ============================================================
 
 DEPT_MODELS = {
     "Naive Bayes": (
@@ -80,9 +75,7 @@ PRIORITY_MODELS = {
 }
 
 
-# ============================================================
 # 4. MODEL LOADER
-# ============================================================
 
 @st.cache_resource
 def load_selected_model(model_path, vec_path):
@@ -92,10 +85,7 @@ def load_selected_model(model_path, vec_path):
     return model, vectorizer
 
 
-# ============================================================
 # 5. PAGE HEADER
-# ============================================================
-
 st.title("🎫 Automated IT Ticket Triage")
 
 st.write(
@@ -105,9 +95,7 @@ st.write(
 )
 
 
-# ============================================================
 # 6. SIDEBAR MODEL SELECTION
-# ============================================================
 
 st.sidebar.header("⚙️ Settings")
 
@@ -128,9 +116,7 @@ selected_pri_model = st.sidebar.selectbox(
 )
 
 
-# ============================================================
 # 7. GET MODEL FILE PATHS
-# ============================================================
 
 dept_model_file, dept_vec_file = DEPT_MODELS[
     selected_dept_model
@@ -141,9 +127,7 @@ pri_model_file, pri_vec_file = PRIORITY_MODELS[
 ]
 
 
-# ============================================================
 # 8. LOAD MODELS
-# ============================================================
 
 try:
 
@@ -169,9 +153,7 @@ except FileNotFoundError as e:
     st.stop()
 
 
-# ============================================================
 # 9. USER INPUT
-# ============================================================
 
 st.subheader("Submit a New Ticket")
 
@@ -185,15 +167,11 @@ ticket_text = st.text_area(
 )
 
 
-# ============================================================
 # 10. PREDICTION BUTTON
-# ============================================================
 
 if st.button("Predict Triage Routing"):
 
-    # --------------------------------------------------------
     # Validate input
-    # --------------------------------------------------------
 
     is_valid, validation_message = validate_ticket_input(
         ticket_text
@@ -209,18 +187,14 @@ if st.button("Predict Triage Routing"):
 
         with st.spinner("Analyzing text..."):
 
-            # =================================================
             # STEP A: PREPROCESS TEXT
-            # =================================================
 
             cleaned_text = clean_text(
                 ticket_text,
                 remove_custom_stopwords=True
             )
 
-            # =================================================
             # STEP B: DEPARTMENT PREDICTION
-            # =================================================
 
             dept_vectorized = dept_vec.transform(
                 [cleaned_text]
@@ -235,9 +209,7 @@ if st.button("Predict Triage Routing"):
                 dept_vectorized
             )
 
-            # =================================================
             # STEP C: PRIORITY PREDICTION
-            # =================================================
 
             pri_vectorized = pri_vec.transform(
                 [cleaned_text]
@@ -252,17 +224,13 @@ if st.button("Predict Triage Routing"):
                 pri_vectorized
             )
 
-            # =================================================
             # STEP D: STREAMLIT RESULT DISPLAY
-            # =================================================
 
             st.success("Analysis Complete!")
 
             col1, col2 = st.columns(2)
 
-            # =================================================
             # DEPARTMENT RESULT
-            # =================================================
 
             with col1:
 
@@ -286,9 +254,7 @@ if st.button("Predict Triage Routing"):
                         float(dept_confidence)
                     )
 
-            # =================================================
             # PRIORITY RESULT
-            # =================================================
 
             with col2:
 
@@ -324,9 +290,7 @@ if st.button("Predict Triage Routing"):
                         float(pri_confidence)
                     )
 
-            # =================================================
-            # OPTIONAL: SHOW ALL PROBABILITIES
-            # =================================================
+            # SHOW ALL PROBABILITIES
 
             st.divider()
 
@@ -334,9 +298,7 @@ if st.button("Predict Triage Routing"):
 
             detail_col1, detail_col2 = st.columns(2)
 
-            # -------------------------------------------------
             # Department probabilities
-            # -------------------------------------------------
 
             with detail_col1:
 
@@ -368,9 +330,7 @@ if st.button("Predict Triage Routing"):
                         "probability scores."
                     )
 
-            # -------------------------------------------------
             # Priority probabilities
-            # -------------------------------------------------
 
             with detail_col2:
 

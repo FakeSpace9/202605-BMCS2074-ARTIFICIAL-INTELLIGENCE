@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 
-model_dir = Path(__file__).resolve().parent    # .../src/models
-src_dir = model_dir.parent                     # .../src
+model_dir = Path(__file__).resolve().parent    
+src_dir = model_dir.parent                     
 project_root = src_dir.parent
 sys.path.append(src_dir)
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -28,9 +28,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # 3. TF-IDF vectorization
-# - stop_words='english' removes filler words that add noise
-# - sublinear_tf=True soften the effect of very high-frequency terms
-# - min_df=2 drops typo that only appear once
 vectorizer = TfidfVectorizer(
     max_features=48000,
     ngram_range=(1, 2),

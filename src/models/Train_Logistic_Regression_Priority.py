@@ -1,8 +1,3 @@
-"""
-Classifier: Logistic Regression for IT Support Ticket Priority.
-Uses the cleaned_tickets_balanced.csv produced by preprocess.py.
-"""
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -16,8 +11,8 @@ import os
 
 from pathlib import Path
 
-model_dir = Path(__file__).resolve().parent    # .../src/models
-src_dir = model_dir.parent                     # .../src
+model_dir = Path(__file__).resolve().parent    
+src_dir = model_dir.parent                     
 project_root = src_dir.parent
 # Go up exactly two levels to target the 'src' directory
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -26,7 +21,6 @@ from utils import print_classification_report, save_report_metrics, plot_confusi
 
 # 1. Load cleaned data
 print("Loading data...")
-# Assuming you use the same balanced dataset. If you have a specific priority dataset, change the name here.
 df = load_processed_dataset()
 df = df.dropna(subset=['clean_text', 'Priority'])
 
@@ -34,7 +28,7 @@ X = df['clean_text']
 # CHANGED: Target is now the Priority column instead of Department
 y = df['Priority']
 
-# 2. Train/test split (Using same random_state for consistency)
+# 2. Train/test split 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )

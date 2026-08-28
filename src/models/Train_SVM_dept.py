@@ -10,8 +10,8 @@ import sys
 import os
 from pathlib import Path
 
-model_dir = Path(__file__).resolve().parent    # .../src/models
-src_dir = model_dir.parent                     # .../src
+model_dir = Path(__file__).resolve().parent    
+src_dir = model_dir.parent                     
 project_root = src_dir.parent
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 

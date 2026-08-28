@@ -115,7 +115,6 @@ if __name__ == "__main__":
     if unexpected:
         raise ValueError(f'Unexpected Department values after mapping: {unexpected}')
     
-    # ---------------------------------------------------------
 
     df['clean_text'] = df['Body'].apply(lambda x: clean_text(x, remove_custom_stopwords=True))
 
